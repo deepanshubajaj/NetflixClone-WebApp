@@ -1,0 +1,8 @@
+/* Styles for ManageProfiles component */
+.fixed-position {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
