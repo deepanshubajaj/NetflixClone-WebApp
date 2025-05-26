@@ -32,7 +32,6 @@
     "@vitejs/plugin-react": "^2.2.0",
     "autoprefixer": "^10.4.13",
     "postcss": "^8.4.19",
-    "react-hot-loader": "^4.13.1",
     "sass": "^1.56.1",
     "tailwindcss": "^3.2.4",
     "tailwindcss-textshadow": "^2.1.3",
