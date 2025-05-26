@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Fade } from "react-reveal";
+import { Fade } from 'react-awesome-reveal';
 import StarRatings from "react-star-ratings";
 import { imageUrl } from "../../Constants/Constance";
 import { PopUpContext } from "../../Context/moviePopUpContext";

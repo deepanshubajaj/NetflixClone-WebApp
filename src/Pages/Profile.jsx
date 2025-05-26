@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
 import { getAuth, updateProfile, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { Fade } from "react-reveal";
+import { Fade } from 'react-awesome-reveal';
 import toast, { Toaster } from "react-hot-toast";
 import { uploadToCloudinary } from "../utils/cloudinaryConfig";
 import { AuthContext } from "../Context/UserContext";

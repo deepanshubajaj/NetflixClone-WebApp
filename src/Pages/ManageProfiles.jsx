@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Fade } from "react-reveal";
+import { Fade } from 'react-awesome-reveal';
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../Firebase/FirebaseConfig";
 import { AuthContext } from "../Context/UserContext";

@@ -9,7 +9,7 @@ import WelcomePageImage3 from "../images/WelcomePageImage3.png";
 import WelcomePageImage4 from "../images/WelcomePageImage4.png";
 import WelcomePageBanner from "../images/WelcomePageBanner.jpg";
 
-import { Fade } from "react-reveal";
+import { Fade } from 'react-awesome-reveal';
 import { Link } from "react-router-dom";
 
 function Welcome() {

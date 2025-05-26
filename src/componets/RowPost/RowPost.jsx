@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "../../axios";
 import { imageUrl, imageUrl2, API_KEY } from "../../Constants/Constance";
 import useUpdateMylist from "../../CustomHooks/useUpdateMylist";
-import { Fade } from "react-reveal";
+import { Fade } from 'react-awesome-reveal';
 import YouTube from "react-youtube";
 import StarRatings from "react-star-ratings";
 
