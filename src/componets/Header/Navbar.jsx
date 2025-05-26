@@ -88,7 +88,7 @@ function Navbar(props) {
                 <div className="hidden md:block">
                   <div className="flex items-center ml-10 space-x-4">
                     <Link
-                      to={"/"}
+                      to={"/home"}
                       className="py-2 font-medium text-white transition ease-in-out delay-150 rounded-md cursor-pointer hover:text-red-800 lg:px-3 text-m"
                     >
                       Home
