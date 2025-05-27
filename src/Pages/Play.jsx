@@ -116,12 +116,11 @@ function Play() {
 
       {movieDetails.id ? (
         <>
-          {/* Movie details Section  */}
+          {/* Movie details Section */}
           <section
             style={{
-              backgroundImage: `linear-gradient(90deg, #000000f0 0%, #000000e6 35%, #000000c3 100%), url(${
-                imageUrl + movieDetails.backdrop_path
-              })`,
+              backgroundImage: `linear-gradient(90deg, #000000f0 0%, #000000e6 35%, #000000c3 100%), url(${imageUrl + movieDetails.backdrop_path
+                })`,
             }}
             className="bg-cover bg-center object-contain flex flex-col p-5 sm:p-14 lg:flex-row lg:items-center lg:justify-center lg:gap-8 2xl:py-24"
           >
@@ -165,6 +164,7 @@ function Play() {
                     })}
                 </h1>
                 <div className="hidden lg:flex lg:mt-3">
+                  {/* Existing buttons */}
                   {isFromMyList ? (
                     <button
                       onClick={() => removeFromMyList(movieDetails)}
@@ -271,6 +271,28 @@ function Play() {
                       </svg>
                     </button>
                   )}
+
+                  {/* Back to Home button - always visible on large screens */}
+                  <button
+                    onClick={() => navigate("/home")}
+                    className="group flex items-center border-[0.7px] border-white text-white font-medium sm:font-semibold text-xs sm:text-lg lg:px-10 xl:font-bold py-3 rounded shadow hover:shadow-lg hover:bg-white hover:border-white hover:text-red-700 outline-none focus:outline-none mt-4 mb-3 ml-4 ease-linear transition-all duration-150"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="h-6 w-6 mr-1 ml-2"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
+                      />
+                    </svg>
+                    Back to Home
+                  </button>
                 </div>
               </div>
             </div>
@@ -325,7 +347,7 @@ function Play() {
                     Add To My List
                   </button>
                   <button
-                    onClick={() => navigate("/")}
+                    onClick={() => navigate("/home")}
                     className="group flex items-center justify-center w-full bg-red-600 border-white text-white font-medium sm:font-bold text-xs sm:mt-4 sm:px-12 sm:text-lg md:px-16 md:text-xl py-3 rounded shadow hover:shadow-lg hover:bg-white hover:border-white hover:text-red-700 outline-none focus:outline-none mb-3 ease-linear transition-all duration-150"
                   >
                     <svg
@@ -349,13 +371,12 @@ function Play() {
               <img
                 src={
                   movieDetails.poster_path &&
-                  `${
-                    imageUrl +
-                    (window.innerWidth > 1024
+                  `${imageUrl +
+                  (window.innerWidth > 1024
+                    ? movieDetails.backdrop_path
                       ? movieDetails.backdrop_path
-                        ? movieDetails.backdrop_path
-                        : "https://i.ytimg.com/vi/Mwf--eGs05U/maxresdefault.jpg"
-                      : movieDetails.poster_path)
+                      : "https://i.ytimg.com/vi/Mwf--eGs05U/maxresdefault.jpg"
+                    : movieDetails.poster_path)
                   }`
                 }
                 className="w-40 rounded-sm lg:w-[45rem] ml-4 lg:ml-0"

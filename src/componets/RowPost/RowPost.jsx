@@ -34,6 +34,23 @@ function RowPost(props) {
   const [moviePopupInfo, setMoviePopupInfo] = useState({});
   const [shouldPop, setshouldPop] = useState(true);
   const [urlId, setUrlId] = useState("");
+  const [castMembers, setCastMembers] = useState([]);
+  const [castLoading, setCastLoading] = useState(false);
+  const [selectedCastMember, setSelectedCastMember] = useState(null);
+  const [showCastImageModal, setShowCastImageModal] = useState(false);
+  const [currentCastIndex, setCurrentCastIndex] = useState(0);
+
+  const goToPreviousCast = () => {
+    const newIndex = (currentCastIndex - 1 + castMembers.length) % castMembers.length;
+    setCurrentCastIndex(newIndex);
+    setSelectedCastMember(castMembers[newIndex]);
+  };
+
+  const goToNextCast = () => {
+    const newIndex = (currentCastIndex + 1) % castMembers.length;
+    setCurrentCastIndex(newIndex);
+    setSelectedCastMember(castMembers[newIndex]);
+  };
 
   useEffect(() => {
     if (props.movieData != null) {
@@ -76,6 +93,8 @@ function RowPost(props) {
     if (shouldPop) {
       setMoviePopupInfo(movieInfo);
       setShowModal(true);
+
+      // Fetch video data
       axios
         .get(`/movie/${movieInfo.id}/videos?api_key=${API_KEY}&language=en-US`)
         .then((responce) => {
@@ -86,7 +105,41 @@ function RowPost(props) {
             console.log("Array Emptey");
           }
         });
+
+      // Fetch cast data
+      setCastLoading(true);
+      // Determine if it's a movie or TV show
+      const mediaType = movieInfo.first_air_date ? 'tv' : 'movie';
+      const endpoint = `/${mediaType}/${movieInfo.id}/credits?api_key=${API_KEY}`;
+
+      axios.get(endpoint)
+        .then(response => {
+          console.log("Cast data:", response.data);
+          if (response.data && response.data.cast && response.data.cast.length > 0) {
+            setCastMembers(response.data.cast.slice(0, 5));
+          } else {
+            setCastMembers([]);
+          }
+          setCastLoading(false);
+        })
+        .catch(error => {
+          console.error("Error fetching cast:", error);
+          setCastLoading(false);
+          setCastMembers([]);
+        });
     }
+  };
+
+  const handleCastImageClick = (actor, index, e) => {
+    e.stopPropagation(); // Prevent triggering other click handlers
+    setSelectedCastMember(actor);
+    setCurrentCastIndex(index);
+    setShowCastImageModal(true);
+  };
+
+  const closeCastImageModal = () => {
+    setShowCastImageModal(false);
+    setSelectedCastMember(null);
   };
 
   return (
@@ -146,14 +199,17 @@ function RowPost(props) {
                       />
                     </>
                   )}
-                  <div className="content pt-16">
+                  <div className="content">
                     <Fade bottom duration={300}>
-                      <div className="flex transition ml-3 ease-in-out delay-150">
+                      <div className="flex transition ml-3 mt-2 ease-in-out delay-150 justify-start flex-wrap">
                         <div
-                          onClick={() => playMovie(obj)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playMovie(obj);
+                          }}
                           onMouseEnter={() => setshouldPop(false)}
                           onMouseLeave={() => setshouldPop(true)}
-                          className="text-white w-9 h-9 border-[2px] rounded-full p-2 mr-1 backdrop-blur-[2px] shadow-md ease-linear transition-all duration-150 hover:text-black hover:bg-white"
+                          className="text-white w-9 h-9 border-[2px] rounded-full p-2 mr-1 mb-1 backdrop-blur-[2px] shadow-md ease-linear transition-all duration-150 hover:text-black hover:bg-white"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -281,14 +337,24 @@ function RowPost(props) {
                         />
                       </div>
 
-                      {converted &&
-                        converted.map((genre) => {
-                          return (
-                            <span className="hidden text-white ml-4 font-thin text-xs lg:inline">
-                              {genre}
-                            </span>
-                          );
-                        })}
+                      {converted && converted.length > 0 && (
+                        <div className="text-white ml-4 font-thin text-xs">
+                          {converted.map((genre, index) => (
+                            <React.Fragment key={index}>
+                              <span className="inline">{genre}</span>
+                              {index < converted.length - 1 && <span>, </span>}
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Add Age Rating display */}
+                      <div className="text-white ml-4 font-thin text-xs mt-1">
+                        <span className="text-red-600 font-medium">Age Rating: </span>
+                        <span className="inline">
+                          {obj.adult ? "18+" : obj.vote_average > 7 ? "16+" : obj.vote_average > 5 ? "13+" : "PG"}
+                        </span>
+                      </div>
                     </Fade>
                   </div>
                 </SwiperSlide>
@@ -421,15 +487,44 @@ function RowPost(props) {
                     <Fade bottom>
                       <div className="relative p-4 sm:p-6 flex-auto">
                         <div className="bg-neutral-700 h-[0.15rem]"></div>
+
+                        {/* Overview */}
                         <p className="my-4 sm:my-7 text-neutral-400 text-xs md:text-lg leading-relaxed line-clamp-4 sm:line-clamp-none">
                           {moviePopupInfo.overview}
                         </p>
-                        <div className="bg-neutral-700 h-[0.15rem]"></div>
+
+                        {/* Cast section */}
+                        <div className="mt-4 mb-4">
+                          <h3 className="text-white text-base font-bold mb-2">Cast</h3>
+                          {castLoading ? (
+                            <p className="text-neutral-400 text-sm">Loading cast...</p>
+                          ) : castMembers.length > 0 ? (
+                            <div className="flex overflow-x-auto space-x-4 pb-3">
+                              {castMembers.map((actor, index) => (
+                                <div key={actor.id} className="flex-shrink-0 text-center">
+                                  <img
+                                    src={actor.profile_path ? `${imageUrl2}${actor.profile_path}` : 'https://via.placeholder.com/80x120'}
+                                    alt={actor.name}
+                                    className="w-16 h-24 object-cover rounded-md mb-2 cursor-pointer hover:opacity-80 transition-opacity"
+                                    onClick={(e) => handleCastImageClick(actor, index, e)}
+                                  />
+                                  <p className="text-white text-sm w-16 truncate font-medium">{actor.name}</p>
+                                  <p className="text-neutral-400 text-sm w-16 truncate">{actor.character}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-neutral-400 text-sm">No cast information available</p>
+                          )}
+                        </div>
+
+                        <div className="bg-neutral-700 h-[0.15rem] mt-4"></div>
                       </div>
                     </Fade>
-                    {/*footer*/}
-                    <div className="sm:flex items-center justify-end p-2 rounded-b">
-                      {/*More Info*/}
+
+                    {/*footer with movie details*/}
+                    <div className="sm:flex items-center justify-between p-2 rounded-b">
+                      {/*More Info - shifted to left*/}
                       <Fade bottom>
                         <div className="relative p-2 py-5 sm:p-6 flex-auto">
                           <h1 className="flex -mt-4 text-neutral-400 text-sm leading-relaxed">
@@ -448,8 +543,7 @@ function RowPost(props) {
                           <h1 className="flex text-neutral-400 text-sm leading-relaxed">
                             Released on :{"  "}
                             <p className="text-white ml-2 font-medium">
-                              {moviePopupInfo.release_date ||
-                                moviePopupInfo.first_air_date}
+                              {moviePopupInfo.release_date || moviePopupInfo.first_air_date}
                             </p>
                           </h1>
                           <h1 className="flex text-neutral-400 text-sm leading-relaxed">
@@ -460,8 +554,8 @@ function RowPost(props) {
                           </h1>
 
                           <h1 className="flex text-neutral-400 text-sm leading-relaxed">
-                            Genere :
-                            {convertGenere(moviePopupInfo.genre_ids).slice(0,2).map(
+                            Genre :
+                            {convertGenere(moviePopupInfo.genre_ids).slice(0, 2).map(
                               (genere) => {
                                 return (
                                   <span className="text-white ml-2 font-medium">
@@ -471,12 +565,23 @@ function RowPost(props) {
                               }
                             )}
                           </h1>
+
+                          {/* Add Age Rating display below Genre */}
+                          <h1 className="flex text-neutral-400 text-sm leading-relaxed mt-1">
+                            Age Rating :
+                            <span className="text-white ml-2 font-medium">
+                              {moviePopupInfo.adult ? "18+" :
+                                moviePopupInfo.vote_average > 7 ? "16+" :
+                                  moviePopupInfo.vote_average > 5 ? "13+" : "PG"}
+                            </span>
+                          </h1>
                         </div>
                       </Fade>
 
+                      {/* Buttons - now on the right */}
                       <div className="flex justify-between p-2">
                         <button
-                          className="group flex items-center justify-center border-[0.7px] border-white text-white font-medium sm:font-bold text-xs px-4 mr-4 sm:px-6 md:text-sm  py-3 rounded shadow hover:shadow-lg hover:bg-white hover:text-red-700 outline-none focus:outline-none mb-1 ease-linear transition-all duration-150"
+                          className="group flex items-center justify-center border-[0.7px] border-white text-white font-medium sm:font-bold text-xs px-4 mr-4 sm:px-6 md:text-sm py-3 rounded shadow hover:shadow-lg hover:bg-white hover:text-red-700 outline-none focus:outline-none mb-1 ease-linear transition-all duration-150"
                           type="button"
                           onClick={() => addToMyList(moviePopupInfo)}
                         >
@@ -527,6 +632,90 @@ function RowPost(props) {
             <div className="opacity-40 fixed inset-0 z-40 bg-black"></div>
           </>
         )}
+        {showCastImageModal && selectedCastMember && (
+          <>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
+              <div className="relative">
+                {/* Close button */}
+                <button
+                  className="absolute top-2 right-2 text-white bg-red-700 rounded-full p-2 hover:bg-white hover:text-black transition"
+                  onClick={closeCastImageModal}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-6 h-6"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+
+                {/* Previous button */}
+                {castMembers.length > 1 && (
+                  <button
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white bg-red-700 rounded-full p-2 hover:bg-white hover:text-black transition"
+                    onClick={goToPreviousCast}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-6 h-6"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                )}
+
+                {/* Next button */}
+                {castMembers.length > 1 && (
+                  <button
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white bg-red-700 rounded-full p-2 hover:bg-white hover:text-black transition"
+                    onClick={goToNextCast}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-6 h-6"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                )}
+
+                {/* Large cast image */}
+                <img
+                  src={
+                    selectedCastMember.profile_path
+                      ? `${imageUrl2}${selectedCastMember.profile_path}`
+                      : "https://via.placeholder.com/300x450"
+                  }
+                  alt={selectedCastMember.name}
+                  className="max-h-[80vh] w-auto rounded-lg shadow-lg"
+                />
+
+                {/* Cast name and character */}
+                <div className="text-white mt-2 text-center">
+                  <div className="text-lg font-semibold">{selectedCastMember.name}</div>
+                  {selectedCastMember.character && (
+                    <div className="text-sm text-gray-300">as {selectedCastMember.character}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="opacity-40 fixed inset-0 z-40 bg-black"></div>
+          </>
+        )}
+
+
       </>
     </div>
   );

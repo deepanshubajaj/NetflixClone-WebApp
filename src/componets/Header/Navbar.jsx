@@ -1,17 +1,21 @@
-import React, { useState, useEffect, useContext } from "react";
-
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { Transition } from "@headlessui/react";
 import { Fade } from 'react-awesome-reveal';
 import { Link, useNavigate } from "react-router-dom";
 import { getAuth, signOut } from "firebase/auth";
 import { AuthContext } from "../../Context/UserContext";
+import { API_KEY, imageUrl2 } from "../../Constants/Constance";
+import usePlayMovie from "../../CustomHooks/usePlayMovie";
+import notificationSound from "../../NotificationAlertAudioFile/notificationAlert.mp3";
 
 function Navbar(props) {
   const { User } = useContext(AuthContext);
   const [profilePic, setProfilePic] = useState("");
-  
+  const { playMovie } = usePlayMovie();
   const navigate = useNavigate();
-  
+  const audioRef = useRef(null);
+  const [audioLoaded, setAudioLoaded] = useState(false);
+
   // Add a function to handle logo click
   const handleLogoClick = () => {
     if (User) {
@@ -27,10 +31,51 @@ function Navbar(props) {
     }
     window.addEventListener("scroll", transitionNavBar);
     console.log("Navbar", User);
+
+    // Preload audio
+    const audio = new Audio(notificationSound);
+    audio.addEventListener('canplaythrough', () => {
+      setAudioLoaded(true);
+      console.log("Audio loaded successfully");
+    });
+    audio.addEventListener('error', (e) => {
+      console.error("Audio loading error:", e);
+    });
+
     return () => {
       window.removeEventListener("scroll", transitionNavBar);
+      audio.removeEventListener('canplaythrough', () => { });
+      audio.removeEventListener('error', () => { });
     };
   }, []);
+
+  // Function to play notification sound
+  const playNotificationSound = () => {
+    console.log("Attempting to play notification sound");
+
+    // Create a new Audio instance each time
+    const audio = new Audio(notificationSound);
+
+    // Play with user interaction
+    const playPromise = audio.play();
+
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log("Audio playback started successfully");
+        })
+        .catch(error => {
+          console.error("Audio playback failed:", error);
+
+          // Fallback method for browsers with strict autoplay policies
+          document.addEventListener('click', function playOnClick() {
+            audio.play();
+            document.removeEventListener('click', playOnClick);
+          }, { once: true });
+        });
+    }
+  };
+
   const [isOpen, setIsOpen] = useState(false);
 
   const [show, handleShow] = useState(false);
@@ -60,8 +105,52 @@ function Navbar(props) {
       });
   };
 
+  // Add these state variables at the top of your component
+  const [showNotificationBadge, setShowNotificationBadge] = useState(false);
+  const [showNotificationList, setShowNotificationList] = useState(false);
+  const [upcomingMovies, setUpcomingMovies] = useState([]);
+
+  // Add this function to handle notification options
+  const handleNotificationOption = (option) => {
+    switch (option) {
+      case 'start':
+        setShowNotificationBadge(true);
+        setShowNotificationList(false);
+
+        // Play notification sound
+        playNotificationSound();
+        break;
+      case 'read':
+        setShowNotificationBadge(false);
+        fetchUpcomingMovies();
+        setShowNotificationList(true);
+        break;
+      case 'none':
+        setShowNotificationBadge(false);
+        setShowNotificationList(false);
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Add this function to fetch upcoming movies from TMDB
+  const fetchUpcomingMovies = async () => {
+    try {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/movie/upcoming?api_key=${API_KEY}&language=en-US&page=1`
+      );
+      const data = await response.json();
+      setUpcomingMovies(data.results.slice(0, 3)); // Get only first 3 movies
+    } catch (error) {
+      console.error("Error fetching upcoming movies:", error);
+    }
+  };
+
   return (
     <Fade>
+      {/* We'll use a different approach than the audio element */}
+
       <header
         className={
           props.playPage
@@ -70,9 +159,8 @@ function Navbar(props) {
         }
       >
         <nav
-          className={`transition duration-500 ease-in-out  ${
-            show && "transition duration-500 ease-in-out bg-black "
-          } `}
+          className={`transition duration-500 ease-in-out  ${show && "transition duration-500 ease-in-out bg-black "
+            } `}
         >
           <div className="px-4 mx-auto max-w-8xl sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
@@ -152,20 +240,121 @@ function Navbar(props) {
                   ) : null}
 
                   {/* Notification icon */}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="items-center hidden w-10 h-10 pr-4 mt-auto mb-auto text-white cursor-pointer md:flex"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                    />
-                  </svg>
+                  <div className="relative group">
+                    {/* Bell Icon */}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="items-center hidden w-10 h-10 pr-4 mt-auto mb-auto text-white cursor-pointer md:flex hover:text-red-800"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                      />
+                    </svg>
+
+                    {/* Badge */}
+                    {showNotificationBadge && (
+                      <span className="absolute top-0 right-1 bg-red-600 text-white text-xs font-semibold px-1.5 py-0.5 rounded-full">
+                        3
+                      </span>
+                    )}
+
+                    {/* Notification Dropdown */}
+                    <ul className="absolute hidden text-white pt-1 -ml-32 group-hover:block transition ease-in-out delay-150 z-20">
+                      <li>
+                        <a
+                          onClick={() => handleNotificationOption('start')}
+                          className="cursor-pointer rounded-t bg-stone-900 font-bold hover:border-l-4 hover:bg-gradient-to-r from-[#ff000056] border-red-800 py-2 px-4 block whitespace-no-wrap transition ease-in-out delay-150"
+                        >
+                          Start Notification
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          onClick={() => handleNotificationOption('read')}
+                          className="cursor-pointer bg-stone-900 font-bold hover:border-l-4 hover:bg-gradient-to-r from-[#ff000056] border-red-800 py-2 px-4 block whitespace-no-wrap transition ease-in-out delay-150"
+                        >
+                          Read Notification
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          onClick={() => handleNotificationOption('none')}
+                          className="cursor-pointer rounded-b bg-stone-900 font-bold hover:border-l-4 hover:bg-gradient-to-r from-[#ff000056] border-red-800 py-2 px-4 block whitespace-no-wrap transition ease-in-out delay-150"
+                        >
+                          No Notification
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Upcoming Movies Notification Panel */}
+                  {showNotificationList && (
+                    <div className="absolute right-0 mt-2 w-64 bg-stone-900 rounded-md shadow-lg z-20">
+                      <div className="p-2 border-b border-gray-700 flex justify-between items-center">
+                        <h3 className="text-white font-bold">Upcoming Movies</h3>
+                        {/* Back button - arrow style */}
+                        <button
+                          onClick={() => setShowNotificationList(false)}
+                          className="text-white hover:text-red-600 transition-colors"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="max-h-60 overflow-y-auto">
+                        {upcomingMovies.length > 0 ? (
+                          upcomingMovies.map((movie) => (
+                            <div
+                              key={movie.id}
+                              className="p-2 border-b border-gray-700 hover:bg-stone-800 cursor-pointer"
+                              onClick={() => {
+                                playMovie(movie, "notification");
+                                setShowNotificationList(false);
+                              }}
+                            >
+                              <div className="flex">
+                                <img
+                                  src={
+                                    movie.poster_path
+                                      ? `${imageUrl2}${movie.poster_path}`
+                                      : "https://i.ytimg.com/vi/Mwf--eGs05U/maxresdefault.jpg"
+                                  }
+                                  alt={movie.title}
+                                  className="w-12 h-18 object-cover rounded mr-2"
+                                />
+                                <div>
+                                  <p className="text-white font-medium">{movie.title}</p>
+                                  <p className="text-gray-400 text-sm">{movie.release_date}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-2">
+                            <p className="text-gray-400">Loading upcoming movies...</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="group inline-block relative transition ease-in-out delay-300">
                     <Link to={"/profile"} onClick={() => sessionStorage.setItem("returnFromProfile", "true")}>
