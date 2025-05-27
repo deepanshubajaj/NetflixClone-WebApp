@@ -8,10 +8,12 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { setDoc, doc, getDoc } from "firebase/firestore";
 import { db } from "../Firebase/FirebaseConfig";
 import { AuthContext } from "../Context/UserContext";
+import toast, { Toaster } from "react-hot-toast";
 
 import GoogleLogo from "../images/GoogleLogo.png";
 import WelcomePageBanner from "../images/WelcomePageBanner.jpg";
@@ -25,9 +27,37 @@ function SignIn() {
   const [ErrorMessage, setErrorMessage] = useState("");
   const [loader, setLoader] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    
+    if (!email) {
+      setErrorMessage("Please enter your email address to reset your password");
+      return;
+    }
+    
+    setLoader(true);
+    const auth = getAuth();
+    
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+        setLoader(false);
+        setResetEmailSent(true);
+        setErrorMessage("");
+        toast.success("Password reset email sent! Check your inbox.");
+      })
+      .catch((error) => {
+        setLoader(false);
+        const errorMessage = error.message;
+        setErrorMessage(errorMessage);
+        console.log(errorMessage);
+        toast.error("Failed to send reset email: " + errorMessage);
+      });
   };
 
   const handleSubmit = (e) => {
@@ -127,6 +157,7 @@ function SignIn() {
         background: `linear-gradient(0deg, hsl(0deg 0% 0% / 73%) 0%, hsl(0deg 0% 0% / 73%) 35%),url(${WelcomePageBanner})`,
       }}
     >
+      <Toaster position="top-center" />
       <div className="h-[100vh] flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
         <div className="w-full bg-[#000000a2] rounded-lg shadow sm:my-0 md:mt-0 sm:max-w-lg xl:p-0 border-2 border-stone-800 lg:border-0">
           <Fade>
@@ -272,8 +303,22 @@ function SignIn() {
                       </>
                     )}
                   </button>
-                  <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                    Don’t have an account yet?{" "}
+                  <div className="text-center mt-4">
+                    {resetEmailSent ? (
+                      <p className="text-sm font-medium text-green-500">
+                        Password reset email sent! Check your inbox.
+                      </p>
+                    ) : (
+                      <button
+                        onClick={handleForgotPassword}
+                        className="text-sm font-medium text-white hover:underline dark:text-primary-500"
+                      >
+                        Forgot Password?
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-sm font-light text-gray-500 dark:text-gray-400 mt-2">
+                    Don't have an account yet?{" "}
                     <Link
                       className="font-medium text-white hover:underline dark:text-primary-500"
                       to={"/signup"}
