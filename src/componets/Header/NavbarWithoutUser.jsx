@@ -4,11 +4,11 @@ import { Link, useNavigate } from "react-router-dom";
 function NavbarWithoutUser() {
   const [show, handleShow] = useState(false);
   const navigate = useNavigate();
-  
+
   const handleLogoClick = () => {
     navigate("/");
   };
-  
+
   const transitionNavBar = () => {
     if (window.scrollY > 100) {
       handleShow(true);
@@ -27,9 +27,8 @@ function NavbarWithoutUser() {
   return (
     <div>
       <header
-        className={`fixed z-50 w-full flex items-center py-4 transition duration-500 ease-in-out ${
-          show && "bg-black transition duration-500 ease-in-out"
-        }`}
+        className={`fixed z-50 w-full flex items-center py-4 transition duration-500 ease-in-out ${show && "bg-black transition duration-500 ease-in-out"
+          }`}
       >
         <div className="w-9/12 md:w-11/12">
           <img

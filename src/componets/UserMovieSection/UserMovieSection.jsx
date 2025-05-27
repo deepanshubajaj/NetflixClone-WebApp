@@ -94,17 +94,17 @@ function UserMovieSection(props) {
               }
               return (
                 <div className="p-1 mt-2 mb-5">
-                  <div 
-                     class="hover:border-2 hover:scale-105 group relative block overflow-hidden rounded-sm transition-all duration-500"
-                     onClick={() => handleMoviePopup(movie)}
+                  <div
+                    class="hover:border-2 hover:scale-105 group relative block overflow-hidden rounded-sm transition-all duration-500"
+                    onClick={() => handleMoviePopup(movie)}
                   >
-    
-                      <img
-                        onClick={() => handleMoviePopup(movie)}
-                        className=""
-                        src={imageUrl2 + movie.backdrop_path}
-                      />
-                    
+
+                    <img
+                      onClick={() => handleMoviePopup(movie)}
+                      className=""
+                      src={imageUrl2 + movie.backdrop_path}
+                    />
+
                     <div
                       style={{
                         background:
@@ -180,7 +180,7 @@ function UserMovieSection(props) {
 
                         {/* Add to MyList or remove from MyList Button */}
                         {props.from === "MyList" ||
-                        props.from === "WatchedMovies" ? (
+                          props.from === "WatchedMovies" ? (
                           <>
                             <div
                               onClick={() => removeMovie(movie)}

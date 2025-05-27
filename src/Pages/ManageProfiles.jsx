@@ -5,7 +5,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../Firebase/FirebaseConfig";
 import { AuthContext } from "../Context/UserContext";
 import toast, { Toaster } from "react-hot-toast";
-import "./ManageProfiles.css"; // Add this import for custom CSS
+import "./ManageProfiles.css"; 
 
 function ManageProfiles() {
   const { User } = useContext(AuthContext);
@@ -24,7 +24,7 @@ function ManageProfiles() {
       try {
         const profilesRef = doc(db, "Profiles", User.uid);
         const profilesSnap = await getDoc(profilesRef);
-        
+
         if (profilesSnap.exists() && profilesSnap.data().profiles?.length > 0) {
           setProfiles(profilesSnap.data().profiles);
         }
@@ -32,7 +32,7 @@ function ManageProfiles() {
         console.error("Error fetching profiles:", error);
       }
     };
-    
+
     fetchProfiles();
   }, [User, navigate]);
 
@@ -46,9 +46,9 @@ function ManageProfiles() {
 
     try {
       // Create updated profiles array with the edited profile
-      const updatedProfiles = profiles.map(profile => 
-        profile.id === editingProfile.id 
-          ? { ...profile, name: editedName.trim() } 
+      const updatedProfiles = profiles.map(profile =>
+        profile.id === editingProfile.id
+          ? { ...profile, name: editedName.trim() }
           : profile
       );
 
@@ -59,7 +59,7 @@ function ManageProfiles() {
       // Update local state
       setProfiles(updatedProfiles);
       setEditingProfile(null);
-      
+
       // Show success message
       toast.success("Profile updated successfully");
     } catch (error) {
@@ -84,17 +84,17 @@ function ManageProfiles() {
       <Toaster />
       <Fade>
         <h1 className="text-5xl font-bold mb-16">Manage Profiles</h1>
-        
+
         {editingProfile ? (
           <div className="flex flex-col items-center mb-20">
             <div className="w-[150px] h-[150px] overflow-hidden rounded-md mb-6">
-              <img 
-                src={editingProfile.photoURL} 
+              <img
+                src={editingProfile.photoURL}
                 alt={editingProfile.name}
                 className="w-full h-full object-cover"
               />
             </div>
-            
+
             <input
               type="text"
               value={editedName}
@@ -102,15 +102,15 @@ function ManageProfiles() {
               className="bg-gray-700 text-white px-4 py-2 rounded mb-6 w-64"
               placeholder="Profile Name"
             />
-            
+
             <div className="flex space-x-4">
-              <button 
+              <button
                 onClick={saveProfileChanges}
                 className="bg-white text-black px-6 py-2 rounded hover:bg-gray-300"
               >
                 Save
               </button>
-              <button 
+              <button
                 onClick={cancelEditing}
                 className="bg-transparent border border-gray-600 text-gray-400 px-6 py-2 rounded hover:text-white"
               >
@@ -122,14 +122,14 @@ function ManageProfiles() {
           <>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-20">
               {profiles.map((profile) => (
-                <div 
-                  key={profile.id} 
+                <div
+                  key={profile.id}
                   className="flex flex-col items-center cursor-pointer group"
                   onClick={() => startEditing(profile)}
                 >
                   <div className="relative w-[120px] h-[120px] overflow-hidden rounded-md border-2 border-transparent group-hover:border-white transition-all duration-200">
-                    <img 
-                      src={profile.photoURL} 
+                    <img
+                      src={profile.photoURL}
                       alt={profile.name}
                       className="w-full h-full object-cover opacity-50"
                     />
@@ -145,10 +145,10 @@ function ManageProfiles() {
             </div>
           </>
         )}
-        
+
         {/* Always show the Done button at the same position */}
         <div className="fixed-position">
-          <button 
+          <button
             onClick={returnToProfiles}
             className="border border-gray-600 text-gray-400 hover:text-white px-4 py-2 rounded"
           >

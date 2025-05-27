@@ -29,7 +29,7 @@ function App() {
   const { User, setUser } = useContext(AuthContext);
   const location = useLocation();
   const [showSplash, setShowSplash] = useState(true);
-  
+
   useEffect(() => {
     const auth = getAuth();
     onAuthStateChanged(auth, (user) => {

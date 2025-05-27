@@ -17,13 +17,13 @@ function ProfileSelection() {
     try {
       const profilesRef = doc(db, "Profiles", User.uid);
       const profilesSnap = await getDoc(profilesRef);
-      
+
       if (profilesSnap.exists()) {
         const existingProfiles = profilesSnap.data().profiles || [];
-        
+
         // Check if the profile already exists
         const profileExists = existingProfiles.some(profile => profile.id === "guest");
-        
+
         if (!profileExists) {
           // Add the new profile
           const newProfile = {
@@ -32,10 +32,10 @@ function ProfileSelection() {
             photoURL: "https://pro2-bar-s3-cdn-cf1.myportfolio.com/dddb0c1b4ab622854dd81280840458d3/98032aebff601c1d993e12a0_rw_600.png",
             isMain: false
           };
-          
+
           // Find the index of the "kids" profile
           const kidsIndex = existingProfiles.findIndex(profile => profile.id === "kids");
-          
+
           // Create a new array with the guest profile inserted before kids
           let updatedProfiles;
           if (kidsIndex !== -1) {
@@ -48,12 +48,12 @@ function ProfileSelection() {
             // If kids profile doesn't exist, just append to the end
             updatedProfiles = [...existingProfiles, newProfile];
           }
-          
+
           // Update Firestore with the new profile added
-          await setDoc(profilesRef, { 
+          await setDoc(profilesRef, {
             profiles: updatedProfiles
           });
-          
+
           // Update local state
           setProfiles(updatedProfiles);
         }
@@ -75,7 +75,7 @@ function ProfileSelection() {
         console.log("Fetching profiles for user:", User.uid);
         const profilesRef = doc(db, "Profiles", User.uid);
         const profilesSnap = await getDoc(profilesRef);
-        
+
         if (profilesSnap.exists() && profilesSnap.data().profiles?.length > 0) {
           const fetchedProfiles = profilesSnap.data().profiles;
           console.log("Profiles loaded:", fetchedProfiles);
@@ -115,7 +115,7 @@ function ProfileSelection() {
               isMain: false
             }
           ];
-          
+
           // Save default profiles to Firestore
           await setDoc(profilesRef, { profiles: defaultProfiles });
           setProfiles(defaultProfiles);
@@ -124,26 +124,26 @@ function ProfileSelection() {
         console.error("Error fetching profiles:", error);
       }
     };
-    
+
     // Check if we're returning from profile management or the profile page
     const returnFromManage = sessionStorage.getItem("returnFromManageProfiles");
     const returnFromProfile = sessionStorage.getItem("returnFromProfile");
-    
+
     if (returnFromManage) {
       console.log("Returning from manage profiles, refreshing data");
       // Clear the flag
       sessionStorage.removeItem("returnFromManageProfiles");
     }
-    
+
     if (returnFromProfile) {
       console.log("Returning from profile page, refreshing data");
       // Clear the flag
       sessionStorage.removeItem("returnFromProfile");
     }
-    
+
     // Always fetch profiles when component mounts or refreshKey changes
     fetchProfiles();
-    
+
   }, [User, navigate, refreshKey]);
 
   const selectProfile = async (profile) => {
@@ -157,10 +157,10 @@ function ProfileSelection() {
           displayName: profile.name,
           photoURL: profile.photoURL
         });
-        
+
         // Store selected profile in localStorage for persistence
         localStorage.setItem("selectedProfile", JSON.stringify(profile));
-        
+
         // Navigate to home page
         navigate("/home");
       }
@@ -173,17 +173,17 @@ function ProfileSelection() {
     <div className="flex flex-col items-center justify-center min-h-screen py-16 bg-black text-white">
       <Fade>
         <h1 className="text-5xl font-bold mb-16">Who's watching?</h1>
-        
+
         <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-20">
           {profiles.map((profile) => (
-            <div 
-              key={profile.id} 
+            <div
+              key={profile.id}
               className="flex flex-col items-center cursor-pointer group"
               onClick={() => selectProfile(profile)}
             >
               <div className="w-[120px] h-[120px] overflow-hidden rounded-md border-2 border-transparent group-hover:border-white transition-all duration-200">
-                <img 
-                  src={profile.photoURL} 
+                <img
+                  src={profile.photoURL}
                   alt={profile.name}
                   className="w-full h-full object-cover"
                 />
@@ -192,7 +192,7 @@ function ProfileSelection() {
             </div>
           ))}
         </div>
-        
+
         <div className="mt-10">
           <Link to="/manage-profiles" className="border border-gray-600 text-gray-400 hover:text-white px-4 py-2 rounded">
             Manage Profiles

@@ -208,11 +208,10 @@ function SignUp() {
                   </div>
                   <button
                     type="submit"
-                    className={`w-full text-white ${
-                      loader
+                    className={`w-full text-white ${loader
                         ? `bg-stone-700`
                         : `bg-red-800 focus:ring-4 focus:outline-none focus:ring-primary-300`
-                    } font-medium rounded-sm text-sm px-5 py-2.5 text-center`}
+                      } font-medium rounded-sm text-sm px-5 py-2.5 text-center`}
                   >
                     {loader ? <ClipLoader color="#ff0000" /> : "Create now"}
                   </button>

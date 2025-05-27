@@ -6,7 +6,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { uploadToCloudinary } from "../utils/cloudinaryConfig";
 import { AuthContext } from "../Context/UserContext";
 import WelcomePageBanner from "../images/WelcomePageBanner.jpg";
-import Loading from "../componets/Loading/Loading"; 
+import Loading from "../componets/Loading/Loading";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../Firebase/FirebaseConfig";
 
@@ -15,7 +15,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 
 function Profile() {
-  const { User, setUser } = useContext(AuthContext); 
+  const { User, setUser } = useContext(AuthContext);
 
   const [profilePic, setProfilePic] = useState("");
   const [newProfielPicURL, setNewProfielPicURL] = useState("");
@@ -24,8 +24,8 @@ function Profile() {
   const [userName, setUserName] = useState("");
   const [isMyListUpdated, setisMyListUpdated] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0); 
-  const [isLoading, setIsLoading] = useState(false); 
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -34,7 +34,7 @@ function Profile() {
       console.log(User.photoURL);
       setProfilePic(User.photoURL);
     }
-  }, [User, refreshKey]); 
+  }, [User, refreshKey]);
 
   const inputRef = useRef(null);
 
@@ -51,19 +51,19 @@ function Profile() {
     if (!fileObj) {
       return;
     }
-    
+
     // Check file type
     if (!fileObj.type.match('image.*')) {
       toast.error("Please select an image file");
       return;
     }
-    
+
     // Check file size (limit to 5MB)
     if (fileObj.size > 5 * 1024 * 1024) {
       toast.error("File size too large. Please select an image under 5MB");
       return;
     }
-    
+
     setNewProfielPic(fileObj);
     setNewProfielPicURL(URL.createObjectURL(fileObj));
     console.log("fileObj is", fileObj);
@@ -73,34 +73,34 @@ function Profile() {
   const changeUserName = async (e) => {
     e.preventDefault();
     console.log("Save button clicked");
-    
+
     // Show loading toast
     const loadingToast = toast.loading("Updating profile...");
     setIsUploading(true);
-    
+
     try {
       const auth = getAuth();
-      
+
       // Update username if changed
       if (isUserNameChanged && userName !== "") {
         await updateProfile(auth.currentUser, { displayName: userName });
         console.log("Username updated successfully");
       }
-      
+
       // Upload profile picture if selected
       let imageUrl = profilePic;
       if (newProfielPic) {
         try {
           console.log("Uploading profile picture:", newProfielPic);
-          
+
           // Upload to Cloudinary
           imageUrl = await uploadToCloudinary(newProfielPic);
           console.log("Image uploaded to Cloudinary:", imageUrl);
-          
+
           // Update Firebase profile with Cloudinary URL
           await updateProfile(auth.currentUser, { photoURL: imageUrl });
           console.log("Profile picture updated successfully");
-          
+
           // Update local state
           setProfilePic(imageUrl);
         } catch (error) {
@@ -111,7 +111,7 @@ function Profile() {
           return;
         }
       }
-      
+
       // Update the profile in Profiles collection
       try {
         // Get the selected profile from localStorage
@@ -119,34 +119,34 @@ function Profile() {
         if (selectedProfileStr) {
           const selectedProfile = JSON.parse(selectedProfileStr);
           console.log("Selected profile:", selectedProfile);
-          
+
           // Get all profiles
           const profilesRef = doc(db, "Profiles", User.uid);
           const profilesSnap = await getDoc(profilesRef);
-          
+
           if (profilesSnap.exists()) {
             const profiles = profilesSnap.data().profiles || [];
             console.log("All profiles before update:", profiles);
-            
+
             // Update the selected profile
             const updatedProfiles = profiles.map(profile => {
               if (profile.id === selectedProfile.id) {
                 console.log(`Updating profile ${profile.id} from ${profile.name} to ${userName || profile.name}`);
-                return { 
-                  ...profile, 
+                return {
+                  ...profile,
                   name: isUserNameChanged && userName !== "" ? userName : profile.name,
                   photoURL: newProfielPic ? imageUrl : profile.photoURL
                 };
               }
               return profile;
             });
-            
+
             console.log("All profiles after update:", updatedProfiles);
-            
+
             // Save updated profiles back to Firestore
             await setDoc(profilesRef, { profiles: updatedProfiles });
             console.log("Profile updated in Profiles collection");
-            
+
             // Update the selected profile in localStorage
             const updatedSelectedProfile = {
               ...selectedProfile,
@@ -160,31 +160,31 @@ function Profile() {
       } catch (error) {
         console.error("Error updating profile in Profiles collection:", error);
       }
-      
+
       // Success - dismiss loading toast and show success toast
       toast.dismiss(loadingToast);
       toast.success("Profile updated successfully");
-      
+
       // Reset states
       setisMyListUpdated(true);
       setNewProfielPic("");
       setNewProfielPicURL("");
       setIsUserNameChanged(false);
       setIsUploading(false);
-      
+
       // Show loading screen
       setIsLoading(true);
-      
+
       // Wait a moment to show the success toast
       setTimeout(() => {
         // Set a flag in sessionStorage to indicate we're returning from the profile page
         sessionStorage.setItem("returnFromProfile", "true");
-        
+
         // Navigate to profiles page to see the updated profile
         navigate("/profiles");
         setIsLoading(false);
       }, 1500);
-      
+
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.dismiss(loadingToast);
@@ -199,30 +199,30 @@ function Profile() {
       // Update Firebase Auth profile
       await updateProfile(auth.currentUser, { photoURL: imageURL });
       setProfilePic(imageURL);
-      
+
       // Update the profile in Profiles collection
       const selectedProfileStr = localStorage.getItem("selectedProfile");
       if (selectedProfileStr) {
         const selectedProfile = JSON.parse(selectedProfileStr);
-        
+
         // Get all profiles
         const profilesRef = doc(db, "Profiles", User.uid);
         const profilesSnap = await getDoc(profilesRef);
-        
+
         if (profilesSnap.exists()) {
           const profiles = profilesSnap.data().profiles || [];
-          
+
           // Update the selected profile
-          const updatedProfiles = profiles.map(profile => 
-            profile.id === selectedProfile.id 
-              ? { ...profile, photoURL: imageURL } 
+          const updatedProfiles = profiles.map(profile =>
+            profile.id === selectedProfile.id
+              ? { ...profile, photoURL: imageURL }
               : profile
           );
-          
+
           // Save updated profiles back to Firestore
           await setDoc(profilesRef, { profiles: updatedProfiles });
           console.log("Profile picture updated in Profiles collection");
-          
+
           // Update the selected profile in localStorage
           const updatedSelectedProfile = {
             ...selectedProfile,
@@ -231,7 +231,7 @@ function Profile() {
           localStorage.setItem("selectedProfile", JSON.stringify(updatedSelectedProfile));
         }
       }
-      
+
       notify();
     } catch (error) {
       alert(error.message);
@@ -401,8 +401,8 @@ function Profile() {
                   SignOut
                 </button>
                 {userName != "" || newProfielPic != "" ? (
-                  <button 
-                    onClick={changeUserName} 
+                  <button
+                    onClick={changeUserName}
                     disabled={isUploading}
                     className={`bg-red-600 text-white py-2 px-4 rounded ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}`}
                   >

@@ -15,15 +15,15 @@ export const uploadToCloudinary = async (file) => {
     if (!file) {
       throw new Error('Invalid file object');
     }
-    
+
     // Create FormData object
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', UPLOAD_PRESET);
-    
+
     // Log upload attempt
     console.log('Attempting Cloudinary upload with preset:', UPLOAD_PRESET);
-    
+
     // Make the request using fetch
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`,
@@ -32,18 +32,18 @@ export const uploadToCloudinary = async (file) => {
         body: formData
       }
     );
-    
+
     // Check response
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Cloudinary error response:', errorText);
       throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
     }
-    
+
     // Parse response
     const data = await response.json();
     console.log('Upload successful:', data);
-    
+
     // Return the URL
     return data.secure_url;
   } catch (error) {
