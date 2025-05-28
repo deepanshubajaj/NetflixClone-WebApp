@@ -1,5 +1,5 @@
 import React from "react";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Fade } from 'react-awesome-reveal';
 import { ClipLoader } from "react-spinners";
@@ -28,6 +28,24 @@ function SignIn() {
   const [loader, setLoader] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [resetTimer, setResetTimer] = useState(30);
+
+  // Timer effect for password reset
+  useEffect(() => {
+    let interval;
+    if (resetEmailSent && resetTimer > 0) {
+      interval = setInterval(() => {
+        setResetTimer((prevTimer) => prevTimer - 1);
+      }, 1000);
+    } else if (resetTimer === 0) {
+      setResetEmailSent(false);
+      setResetTimer(30);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [resetEmailSent, resetTimer]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -48,6 +66,7 @@ function SignIn() {
       .then(() => {
         setLoader(false);
         setResetEmailSent(true);
+        setResetTimer(30);
         setErrorMessage("");
         toast.success("Password reset email sent! Check your inbox.");
       })
@@ -279,8 +298,8 @@ function SignIn() {
                   <button
                     type="submit"
                     className={`w-full text-white ${loader
-                        ? `bg-stone-700`
-                        : `bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-primary-300`
+                      ? `bg-stone-700`
+                      : `bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-primary-300`
                       } transition ease-in-out font-medium rounded-sm text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
                   >
                     {loader ? <ClipLoader color="#ff0000" /> : `Sign in`}
@@ -288,8 +307,8 @@ function SignIn() {
                   <button
                     onClick={loginWithGoogle}
                     className={`flex justify-center items-center w-full text-white ${loader
-                        ? `bg-stone-700`
-                        : `bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-primary-300`
+                      ? `bg-stone-700`
+                      : `bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-primary-300`
                       } transition ease-in-out font-medium rounded-sm text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:focus:ring-primary-800`}
                   >
                     {loader ? (
@@ -303,9 +322,14 @@ function SignIn() {
                   </button>
                   <div className="text-center mt-4">
                     {resetEmailSent ? (
-                      <p className="text-sm font-medium text-green-500">
-                        Password reset email sent! Check your inbox.
-                      </p>
+                      <div className="text-sm font-medium">
+                        <p className="text-green-500 mb-1">
+                          Password reset email sent! Check your inbox.
+                        </p>
+                        <p className="text-white">
+                          Resend in <span className="text-red-500 font-bold">{resetTimer}</span> seconds
+                        </p>
+                      </div>
                     ) : (
                       <button
                         onClick={handleForgotPassword}
